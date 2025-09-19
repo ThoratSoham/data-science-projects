@@ -1,3 +1,7 @@
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+pd.set_option('display.max_colwidth', None)
 import re
 import pandas as pd
 from PyPDF2 import PdfReader
@@ -15,25 +19,21 @@ categories = []
 
 for page in reader.pages:
     text = page.extract_text() or ""
-    # join broken ranks + percentiles into single line
     text = re.sub(r'(\d+)\n\(([\d.]+)\)', r'\1 (\2)', text)
 
     for line in text.splitlines():
         line = line.strip()
 
-        # college line: "01002 - Government College of Engineering, Amravati"
         m = re.match(r'^(\d{5})\s*-\s*(.+)$', line)
         if m:
             college = m.group(2).strip()
             continue
 
-        # branch line: "0100219110 - Civil Engineering"
         m = re.match(r'^(\d{10})\s*-\s*(.+)$', line)
         if m:
             branch = m.group(2).strip()
             continue
 
-        # category headers (GOPENS, GSCS, …)
         cats = re.findall(r'\b[A-Z]{2,}\b', line)
         if cats:
             categories = cats
@@ -51,4 +51,27 @@ for page in reader.pages:
                     "Percentile": float(pct_str) if pct_str else None
                 })
 
-df = pd.DataFrame(rows)
+
+def catinfo():
+  print("""['CAP', 'GOPENS', 'GSCS', 'GSTS', 'GVJS', 'GOBCS', 'GSEBCS',
+       'LOPENS', 'LSCS', 'LSTS', 'LVJS', 'LOBCS', 'LSEBCS', 'PWDOPENS',
+       'PWDOBCS', 'DEFOPENS', 'DEFOBCS', 'TFWS', 'PWDRSCS', 'DEFROBCS',
+       'ORPHAN', 'EWS', 'SDEFROBCS', 'SORPHAN', 'SEWS', 'GOPENH', 'GSCH',
+       'GOBCH', 'LOPENH', 'LOBCH', 'GSTH', 'GOPENO', 'GSCO', 'GVJO',
+       'GSEBCO', 'LOPENO', 'GVJH', 'GSEBCH', 'GOBCO', 'LSCO', 'LSCH',
+       'LSTH', 'LVJH', 'LSEBCH', 'LSTO', 'PWDOPENH', 'PWDOBCH', 'GSTO',
+       'LVJO', 'LOBCO', 'LSEBCO', 'DEFSCS', 'DEFRSCS', 'II', 'MI',
+       'PWDROBC', 'DEFRVJS', 'DEFSEBCS', 'SDEFRVJS', 'PWDRSTS', 'PWDSCS',
+       'PWDRSCH', 'DEFRSTS', 'PWDSEBCS', 'PWDSTS', 'DEFSTS']""")
+per = input("Enter percentile: ")
+cat = input("Enter category \n (enter cat for viewing all the categories): ")
+if cat == "cat":
+  catinfo()
+  cat = input("Enter category: ")
+rank_category_condition = (pd.to_numeric(df["Percentile"], errors="coerce") <= float(per)) & \
+                          (df["Category"].str.upper() == cat)
+eligible = df[rank_category_condition]
+
+c = eligible[["College", "Branch", "Rank", "Category", "Percentile"]]
+c = c.sort_values(by="Percentile", ascending=False)
+c
