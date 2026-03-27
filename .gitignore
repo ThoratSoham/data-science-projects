@@ -1,0 +1,14 @@
+# Data files
+Rossmann Store Sales/data/
+*.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+venv/
+.env
