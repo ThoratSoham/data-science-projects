@@ -58,3 +58,4 @@ Continuously improving through iteration
 
 👤 About Me
 First-year student building a strong foundation in applied data science and machine learning, aiming for both local and international internship opportunities.
+true
